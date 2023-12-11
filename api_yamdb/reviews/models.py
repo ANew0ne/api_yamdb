@@ -1,7 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from users.model import User
+from users.models import User
 
 MAX_LENGTH = 200
 TEXT_LIMIT_SHOW = 20
