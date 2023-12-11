@@ -1,8 +1,9 @@
 from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
 
-from .serializers import CommentSerializer, ReviewSerializer
-from reviews.models import Review, Title
+from .serializers import (CommentSerializer, ReviewSerializer,
+                          CategorySerializer, GenreSerializer, TitleSerializer)
+from reviews.models import Review, Title, Category, Genre
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -40,3 +41,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class TitleSerializer(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
