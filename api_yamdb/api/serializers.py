@@ -33,7 +33,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             request.method == 'POST'
             and Review.objects.filter(title=title, author=author).exists()
         ):
-            raise ValidationError('Нельзя диблировать отзыв!')
+            raise ValidationError('Нельзя дублировать отзыв!')
         return data
 
     class Meta:
