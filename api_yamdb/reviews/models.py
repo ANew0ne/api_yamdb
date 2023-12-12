@@ -1,11 +1,5 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 from django.core.exceptions import ValidationError
->>>>>>> c40e3e9 (Готово к rebase)
-=======
 from django.core.exceptions import ValidationError
->>>>>>> c40e3e92b2d67de71aeb802e0b8c3498391d29f5
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
