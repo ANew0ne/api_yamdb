@@ -2,7 +2,8 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
-from reviews.models import Comment, Title, Review
+from reviews.models import (Comment, Title, Review,
+                            Category, Genre)
 
 MIN_VALUE = 0
 MAX_VALUE = 10
@@ -32,7 +33,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             request.method == 'POST'
             and Review.objects.filter(title=title, author=author).exists()
         ):
-            raise ValidationError('Нельзя диблировать отзыв!')
+            raise ValidationError('Нельзя дублировать отзыв!')
         return data
 
     class Meta:
@@ -53,3 +54,28 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comment
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+class GenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Genre
+        fields = '__all__'
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(slug_field='slug',
+                                            queryset=Category.objects.all())
+    genre = serializers.SlugRelatedField(slug_field='slug', many=True,
+                                         queryset=Genre.objects.all())
+
+    class Meta:
+        model = Title
+        fields = '__all__'
