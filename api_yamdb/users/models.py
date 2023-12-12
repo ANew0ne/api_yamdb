@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from .enums import UserRole
+
 MAX_FIELD_LENGTH = 150
 MAX_EMAIL_LENGTH = 254
 
