@@ -134,7 +134,7 @@ python3 manage.py runserver
    }
 ```
 
-Команда разработки:
-[Алексей Астапов](https://github.com/aleksei-astapoff)  
-[Денис Поддубный](https://github.com/ANew0ne)  
-[Шукурилло Каримов](https://github.com/gratefultolord)
+Команда разработки:  
+- [Алексей Астапов](https://github.com/aleksei-astapoff)  
+- [Денис Поддубный](https://github.com/ANew0ne)  
+- [Шукурилло Каримов](https://github.com/gratefultolord)
