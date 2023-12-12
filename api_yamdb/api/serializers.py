@@ -2,8 +2,8 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
-from .models import Category, Genre, Title
-from reviews.models import Comment, Title, Review
+from reviews.models import (Comment, Title, Review,
+                            Category, Genre)
 
 MIN_VALUE = 0
 MAX_VALUE = 10

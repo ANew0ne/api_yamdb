@@ -2,8 +2,7 @@ from rest_framework import viewsets
 from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Category, Genre, Title
-from reviews.models import Review, Title
+from reviews.models import Review, Title, Category, Genre
 from .serializers import (CategorySerializer, GenreSerializer, TitleSerializer,
                           CommentSerializer, ReviewSerializer)
 
