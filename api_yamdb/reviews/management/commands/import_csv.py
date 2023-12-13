@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
         # Загрузка данных для Category
         category_file_path = os.path.join(csv_dir, 'category.csv')
-        with open(category_file_path, 'r') as category_file:
+        with open(category_file_path, 'r', encoding='utf-8') as category_file:
             csv_reader = csv.DictReader(category_file)
             for row in csv_reader:
                 Category.objects.create(name=row['name'], slug=row['slug'])
@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
         # Загрузка данных для Genre
         genre_file_path = os.path.join(csv_dir, 'genre.csv')
-        with open(genre_file_path, 'r') as genre_file:
+        with open(genre_file_path, 'r', encoding='utf-8') as genre_file:
             csv_reader = csv.DictReader(genre_file)
             for row in csv_reader:
                 Genre.objects.create(name=row['name'], slug=row['slug'])
@@ -66,6 +66,7 @@ class Command(BaseCommand):
             csv_reader = csv.DictReader(user_file)
             for row in csv_reader:
                 User.objects.create(
+                    id=row['id'],
                     username=row['username'],
                     email=row['email'],
                     role=row['role'],
