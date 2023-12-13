@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.mail import send_mail
 from django.db import models
 
 from .enums import UserRole
@@ -8,6 +9,8 @@ MAX_EMAIL_LENGTH = 254
 
 
 class User(AbstractUser):
+    """Модель пользователя."""
+
     email = models.EmailField(verbose_name='Электронная почта',
                               unique=True,
                               max_length=MAX_EMAIL_LENGTH)
@@ -27,8 +30,6 @@ class User(AbstractUser):
                             default=UserRole.USER,
                             max_length=MAX_FIELD_LENGTH)
 
-    REQUIRED_FIELDS = ('email',)
-
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
@@ -37,7 +38,7 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return (self.role == UserRole.ADMIN.value
-                or self.is_superuser or self.is_stuff)
+                or self.is_superuser or self.is_staff)
 
     @property
     def is_moderator(self):
@@ -46,3 +47,24 @@ class User(AbstractUser):
     @property
     def is_user(self):
         return self.role == UserRole.USER.value
+
+
+class EmailVerification(models.Model):
+    """Модель подтвердающего токена."""
+
+    confirmation_code = models.CharField(max_length=6, unique=True)
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='confirmation_code')
+
+    def __str__(self):
+        return f'EmailVerification for {self.user.email}'
+
+    def send_verification_email(self):
+        send_mail(
+            'Подтверждение регистрации',
+            f'Код подтверждения: {self.confirmation_code}',
+            'from@example.com',
+            [self.user.email],
+            fail_silently=False,
+        )

@@ -5,6 +5,8 @@ from .models import Comment, Category, Genre, Review, Title
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
+    """Административный класс для управления отзывами."""
+
     list_display = (
         'title',
         'text',
@@ -24,6 +26,8 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
+    """Административный класс для управления комментариями."""
+
     list_display = (
         'review',
         'text',
@@ -43,6 +47,8 @@ class CommentAdmin(admin.ModelAdmin):
 
 @admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
+    """Административный класс для управления произведениями."""
+
     list_display = ('name', 'year', 'description',
                     'display_genre', 'category')
     list_filter = ('name', 'year', 'genre', 'category')
@@ -55,6 +61,8 @@ class TitleAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    """Административный класс для управления категориями."""
+
     list_display = (
         'name', 'slug'
     )
@@ -63,6 +71,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
+    """Административный класс для управления жанрами."""
+
     list_display = (
         'name', 'slug'
     )

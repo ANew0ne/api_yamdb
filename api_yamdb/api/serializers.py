@@ -1,15 +1,17 @@
-from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 
-from reviews.models import (Comment, Title, Review,
-                            Category, Genre)
+from reviews.models import Comment, Title, Review, Category, Genre
+from users.models import User
 
 MIN_VALUE = 0
 MAX_VALUE = 10
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор отзывов."""
+
     title = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True
@@ -42,6 +44,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор комментариев к отзывам."""
+
     review = serializers.SlugRelatedField(
         slug_field='text',
         read_only=True
@@ -57,6 +61,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор категорий произведений."""
 
     class Meta:
         model = Category
@@ -64,6 +69,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор жанров произведений."""
 
     class Meta:
         model = Genre
@@ -71,6 +77,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор произведений."""
+
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
     genre = serializers.SlugRelatedField(slug_field='slug', many=True,
@@ -79,3 +87,36 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+
+class UsersSerilizer(serializers.ModelSerializer):
+    """Сериализатор пользователей."""
+
+    class Meta:
+        model = User
+        fields = (
+            "username", "email", "first_name", "last_name", "bio", "role",
+        )
+        read_only_fields = ("username", "email", "role",)
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    """Сериализатор регистрации пользователя."""
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError(
+                'Использование имени "me" в качестве username запрещено.'
+            )
+        return value
+
+
+class TokenSerializer(serializers.Serializer):
+    """Сериализатор токена."""
+
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
