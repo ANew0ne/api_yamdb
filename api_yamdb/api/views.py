@@ -1,35 +1,46 @@
-# from random import randint
-# from django.http import JsonResponse
-# from django.views.decorators.csrf import csrf_exempt
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import viewsets, status
+from django.contrib.auth.tokens import default_token_generator
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
-# from rest_framework.exceptions import AuthenticationFailed
-# from rest_framework_simplejwt.views import TokenObtainPairView
-from django_filters.rest_framework import DjangoFilterBackend
-from django.contrib.auth.tokens import default_token_generator
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.views import APIView
 
-from .permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
-                          IsAdminOrModeratorOrAuthorOnly)
-from .serializers import (CommentSerializer, ReviewSerializer,
-                          SignUpSerializer, CategorySerializer,
-                          GenreSerializer, TitleSerializer,
-                          TokenSerializer)
+
+from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
+                             IsAdminOrModeratorOrAuthorOnly)
+from api.serializers import (CommentSerializer, ReviewSerializer,
+                             SignUpSerializer, CategorySerializer,
+                             GenreSerializer, TitleSerializer,
+                             TokenSerializer, UsersSerilizer)
 from reviews.models import Review, Title, Category, Genre
 from users.models import EmailVerification, User
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    '''Вьюсет для Пользователя'''
+    """Вьюсет для Пользователя."""
 
-    permission_classes = (IsAuthenticated, IsAdminOnly,)
+    queryset = User.objects.all()
+    serializer_class = UsersSerilizer
+    permission_classes = (IsAdminOnly,)
+
+    @action(detail=False,
+            methods=['GET', 'PATCH'],
+            permission_classes=[IsAuthenticated])
+    def self_profile(self, request):
+        if request.method == "PATCH":
+            serializer = UsersSerilizer(request.user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UsersSerilizer(request.user)
+        return Response(serializer.data)
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    '''Вьюсет для Категорий'''
+    """Вьюсет для Категорий."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -39,7 +50,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class GenreViewSet(viewsets.ReadOnlyModelViewSet):
-    '''Вьюсет для Жанров'''
+    """Вьюсет для Жанров."""
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -49,7 +60,7 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class TitleViewSet(viewsets.ReadOnlyModelViewSet):
-    '''Вьюсет для Произведений'''
+    """Вьюсет для Произведений."""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -58,7 +69,7 @@ class TitleViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    '''Вьюсет для Комментариев'''
+    """Вьюсет для Комментариев."""
 
     serializer_class = CommentSerializer
     permission_classes = (IsAdminOrModeratorOrAuthorOnly,)
@@ -76,7 +87,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    '''Вьюсет для Отзывов'''
+    """Вьюсет для Отзывов."""
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminOrModeratorOrAuthorOnly,)
@@ -94,7 +105,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class SignUpView(APIView):
-    """Эндпоинт для регистрации пользователя."""
+    """Вьюсет для регистрации пользователя."""
+
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
@@ -103,8 +115,7 @@ class SignUpView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             email_verification = EmailVerification.objects.create(
-                confirmation_code=(EmailVerification.
-                                   generate_confirmation_code(self)),
+                confirmation_code=default_token_generator.make_token(user),
                 user=user,
             )
             email_verification.send_verification_email()
@@ -112,26 +123,21 @@ class SignUpView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class TokenView(TokenObtainPairView):
-
-#     serializer_class = MyTokenObtainPairSerializer
-
-
 class ObtainTokenView(APIView):
-    permission_classes = (AllowAny,)
+    """Вьюсет для получения токена."""
+
+    permission_classes = (permissions.AllowAny,)
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = get_object_or_404(
-            User,
-            username=serializer.validated_data["username"]
-        )
-
-        if default_token_generator.check_token(
-            user, serializer.validated_data["confirmation_code"]
-        ):
+        user = get_object_or_404(User,
+                                 username=serializer.data.get('username'))
+        confirmation_code = serializer.data.get('confirmation_code')
+        if default_token_generator.check_token(user, confirmation_code):
             token = AccessToken.for_user(user)
-            return Response({"token": str(token)}, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'token': str(token)}, status=status.HTTP_200_OK
+            )
+        return Response('Invalid token!',
+                        status=status.HTTP_400_BAD_REQUEST)

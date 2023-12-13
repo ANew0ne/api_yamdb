@@ -1,5 +1,3 @@
-from random import randint
-
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
 from django.db import models
@@ -11,6 +9,8 @@ MAX_EMAIL_LENGTH = 254
 
 
 class User(AbstractUser):
+    """Модель пользователя."""
+
     email = models.EmailField(verbose_name='Электронная почта',
                               unique=True,
                               max_length=MAX_EMAIL_LENGTH)
@@ -38,7 +38,7 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return (self.role == UserRole.ADMIN.value
-                or self.is_superuser or self.is_stuff)
+                or self.is_superuser or self.is_staff)
 
     @property
     def is_moderator(self):
@@ -50,6 +50,8 @@ class User(AbstractUser):
 
 
 class EmailVerification(models.Model):
+    """Модель подтвердающего токена."""
+
     confirmation_code = models.CharField(max_length=6, unique=True)
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
@@ -57,9 +59,6 @@ class EmailVerification(models.Model):
 
     def __str__(self):
         return f'EmailVerification for {self.user.email}'
-
-    def generate_confirmation_code(self):
-        return randint(111111, 999999)
 
     def send_verification_email(self):
         send_mail(

@@ -12,6 +12,7 @@ SLUG_LIMIT = 50
 
 
 class Category(models.Model):
+    """Модель категории."""
     name = models.CharField(verbose_name='Название',
                             max_length=MAX_LENGTH)
     slug = models.SlugField(unique=True,
@@ -27,6 +28,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Модель жанра произведений."""
     name = models.CharField(verbose_name='Название',
                             max_length=MAX_LENGTH)
     slug = models.SlugField(unique=True,
@@ -42,6 +44,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Модель произведения."""
     name = models.CharField(verbose_name='Название',
                             max_length=MAX_LENGTH)
     year = models.IntegerField(verbose_name='Год выпуска')
@@ -65,7 +68,7 @@ class Title(models.Model):
 
 
 class Review(models.Model):
-    '''Модель Отзывов'''
+    """Модель Отзывов."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -115,7 +118,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-    '''Модель Комментариев'''
+    """Модель Комментариев."""
 
     review = models.ForeignKey(
         Review,
