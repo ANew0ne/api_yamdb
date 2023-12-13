@@ -1,9 +1,12 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+# from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+# from rest_framework_simplejwt.views import TokenObtainPairView
 
 from reviews.models import (Comment, Title, Review,
                             Category, Genre)
+from users.models import User
 
 MIN_VALUE = 0
 MAX_VALUE = 10
@@ -79,3 +82,42 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    """Сериализация запроса и ответа для регистрации пользователя."""
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField()
+
+# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields[self.username_field] = serializers.CharField()
+#         self.fields['password'] = user.confirmation_code
+    # @classmethod
+    # def get_token(cls, user):
+    #     token = super().get_token(user)
+
+    #     token['username'] = user.username
+    #     token['confirmation_code'] = user.confirmation_code
+
+    #     return token
+# class GetTokenSerializer(serializers.ModelSerializer):
+#     username = serializers.CharField(
+#         required=True)
+#     confirmation_code = serializers.CharField(
+#         required=True)
+
+#     class Meta:
+#         model = User
+#         fields = (
+#             'username',
+#             'confirmation_code'
+#         )

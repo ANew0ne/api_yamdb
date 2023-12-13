@@ -1,13 +1,25 @@
-from rest_framework import viewsets
+# from random import randint
+# from django.http import JsonResponse
+# from django.views.decorators.csrf import csrf_exempt
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import viewsets, status
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+# from rest_framework.exceptions import AuthenticationFailed
+# from rest_framework_simplejwt.views import TokenObtainPairView
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework_simplejwt.tokens import AccessToken
 
 from .permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
                           IsAdminOrModeratorOrAuthorOnly)
 from .serializers import (CommentSerializer, ReviewSerializer,
-                          CategorySerializer, GenreSerializer, TitleSerializer)
+                          SignUpSerializer, CategorySerializer,
+                          GenreSerializer, TitleSerializer,
+                          TokenSerializer)
 from reviews.models import Review, Title, Category, Genre
+from users.models import EmailVerification, User
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -79,3 +91,47 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+
+
+class SignUpView(APIView):
+    """Эндпоинт для регистрации пользователя."""
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        """Обработка POST-запроса."""
+        serializer = SignUpSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            email_verification = EmailVerification.objects.create(
+                confirmation_code=(EmailVerification.
+                                   generate_confirmation_code(self)),
+                user=user,
+            )
+            email_verification.send_verification_email()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class TokenView(TokenObtainPairView):
+
+#     serializer_class = MyTokenObtainPairSerializer
+
+
+class ObtainTokenView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        serializer = TokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(
+            User,
+            username=serializer.validated_data["username"]
+        )
+
+        if default_token_generator.check_token(
+            user, serializer.validated_data["confirmation_code"]
+        ):
+            token = AccessToken.for_user(user)
+            return Response({"token": str(token)}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
