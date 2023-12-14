@@ -15,7 +15,6 @@ from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
 from api.serializers import (CommentSerializer, ReviewSerializer,
                              SignUpSerializer, CategorySerializer,
                              GenreSerializer, TitleSerializer,
-                             TitleGetSerializer,
                              TokenSerializer, UsersSerilizer)
 from reviews.models import Review, Title, Category, Genre
 from users.models import EmailVerification, User
@@ -71,11 +70,6 @@ class TitleViewSet(ModelMixinSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
     permission_classes = (IsAdminOrUserOrReadOnly,)
-
-    def get_serializer_class(self):
-        if self.action in ['list', 'retrieve']:
-            return TitleGetSerializer
-        return TitleSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
