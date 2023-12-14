@@ -2,18 +2,21 @@ from rest_framework import permissions
 
 
 class IsAdminOnly(permissions.BasePermission):
-    """Разрешает доступ только администраторам и модераторам."""
+    """
+    Разрешает доступ только администраторам
+    и сотрудникам административной части.
+    """
 
     def has_permission(self, request, view):
         return (
             request.user.is_admin
-            or request.user.is_moderator
+            or request.user.is_staff
         )
 
     def has_object_permission(self, request, view, obj):
         return (
             request.user.is_admin
-            or request.user.is_moderator
+            or request.user.is_staff
         )
 
 

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 
-
+from .mixins import ModelMixinSet
 from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
                              IsAdminOrModeratorOrAuthorOnly)
 from api.serializers import (CommentSerializer, ReviewSerializer,
@@ -39,7 +39,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+class CategoryViewSet(ModelMixinSet):
     """Вьюсет для Категорий."""
 
     queryset = Category.objects.all()
@@ -49,7 +49,7 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAdminOrUserOrReadOnly,)
 
 
-class GenreViewSet(viewsets.ReadOnlyModelViewSet):
+class GenreViewSet(ModelMixinSet):
     """Вьюсет для Жанров."""
 
     queryset = Genre.objects.all()
@@ -59,7 +59,7 @@ class GenreViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAdminOrUserOrReadOnly,)
 
 
-class TitleViewSet(viewsets.ReadOnlyModelViewSet):
+class TitleViewSet(ModelMixinSet):
     """Вьюсет для Произведений."""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer

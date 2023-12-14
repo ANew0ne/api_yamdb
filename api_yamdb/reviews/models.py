@@ -80,6 +80,7 @@ class Review(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
+        null=False,
         verbose_name='Автор'
     )
     score = models.IntegerField(
