@@ -30,7 +30,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UsersSerilizerForAdmin
-    permission_classes = (IsAdminOnly,)
+    permission_classes = (IsAuthenticated, IsAdminOnly,)
     filter_backends = (filters.SearchFilter,)
     filterset_fields = ('username',)
     search_fields = ('username',)
@@ -44,12 +44,12 @@ class UsersViewSet(viewsets.ModelViewSet):
 
     @action(detail=False,
             methods=('GET', 'PATCH'),
-            url_path='me',
             permission_classes=(IsAuthenticated,))
-    def self_profile(self, request):
+    def me(self, request):
         if request.method == "PATCH":
-            serializer = UsersSerilizerForAdmin(request.user,
-                                                data=request.data)
+            serializer = UsersSerilizer(request.user,
+                                        data=request.data,
+                                        partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
