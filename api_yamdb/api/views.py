@@ -1,6 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import permissions, status, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 
@@ -15,7 +15,8 @@ from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
 from api.serializers import (CommentSerializer, ReviewSerializer,
                              SignUpSerializer, CategorySerializer,
                              GenreSerializer, TitleSerializer,
-                             TokenSerializer, UsersSerilizer)
+                             TokenSerializer, UsersSerilizer,
+                             UsersSerilizerForAdmin)
 from reviews.models import Review, Title, Category, Genre
 from users.models import EmailVerification, User
 
@@ -24,8 +25,18 @@ class UsersViewSet(viewsets.ModelViewSet):
     """Вьюсет для Пользователя."""
 
     queryset = User.objects.all()
-    serializer_class = UsersSerilizer
+    serializer_class = UsersSerilizerForAdmin
     permission_classes = (IsAdminOnly,)
+    filter_backends = (filters.SearchFilter,)
+    filterset_fields = ('username',)
+    search_fields = ('username',)
+    lookup_field = 'username'
+    http_method_names = (
+        "get",
+        "post",
+        "patch",
+        "delete",
+    )
 
     @action(detail=False,
             methods=('GET', 'PATCH'),
@@ -33,12 +44,15 @@ class UsersViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,))
     def self_profile(self, request):
         if request.method == "PATCH":
-            serializer = UsersSerilizer(request.user, data=request.data)
+            serializer = UsersSerilizerForAdmin(request.user,
+                                                data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        serializer = UsersSerilizer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = UsersSerilizer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class CategoryViewSet(ModelMixinSet):
