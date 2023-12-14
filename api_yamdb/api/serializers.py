@@ -78,6 +78,19 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug')
 
 
+class TitleGetSerializer(serializers.ModelSerializer):
+    """Сериализатор произведений безопасных запросов."""
+
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+        read_only_fields = (
+            'id', 'name', 'year', 'description', 'genre', 'category')
+
+
 class TitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
