@@ -83,10 +83,14 @@ class TitleSerializer(serializers.ModelSerializer):
                                             queryset=Category.objects.all())
     genre = serializers.SlugRelatedField(slug_field='slug', many=True,
                                          queryset=Genre.objects.all())
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ('name', 'year', 'description', 'genre', 'category', 'rating')
+
+    def get_rating(self, obj):
+        return 
 
 
 class UsersSerilizer(serializers.ModelSerializer):
