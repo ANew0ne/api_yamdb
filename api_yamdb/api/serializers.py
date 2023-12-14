@@ -65,7 +65,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -73,24 +73,31 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
+        fields = ('name', 'slug')
+
+
+class TitleGetSerializer(serializers.ModelSerializer):
+    """Сериализатор произведений безопасных запросов."""
+
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
+
+    class Meta:
+        model = Title
         fields = '__all__'
+        read_only_fields = (
+            'id', 'name', 'year', 'description', 'genre', 'category')
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    """Сериализатор произведений."""
-
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
     genre = serializers.SlugRelatedField(slug_field='slug', many=True,
                                          queryset=Genre.objects.all())
-    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
-        fields = ('name', 'year', 'description', 'genre', 'category', 'rating')
-
-    def get_rating(self, obj):
-        return 
+        fields = '__all__'
 
 
 class UsersSerilizer(serializers.ModelSerializer):
@@ -98,9 +105,7 @@ class UsersSerilizer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            "username", "email", "first_name", "last_name", "bio", "role",
-        )
+        fields = '__all__'
         read_only_fields = ("role",)
 
 

@@ -1,8 +1,9 @@
 from django.contrib.auth.tokens import default_token_generator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -14,6 +15,7 @@ from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
 from api.serializers import (CommentSerializer, ReviewSerializer,
                              SignUpSerializer, CategorySerializer,
                              GenreSerializer, TitleSerializer,
+                             TitleGetSerializer,
                              TokenSerializer, UsersSerilizer)
 from reviews.models import Review, Title, Category, Genre
 from users.models import EmailVerification, User
@@ -45,9 +47,10 @@ class CategoryViewSet(ModelMixinSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     permission_classes = (IsAdminOrUserOrReadOnly,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(ModelMixinSet):
@@ -55,9 +58,10 @@ class GenreViewSet(ModelMixinSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     permission_classes = (IsAdminOrUserOrReadOnly,)
+    search_fields = ('name',)
 
 
 class TitleViewSet(ModelMixinSet):
@@ -67,6 +71,11 @@ class TitleViewSet(ModelMixinSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
     permission_classes = (IsAdminOrUserOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return TitleGetSerializer
+        return TitleSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
