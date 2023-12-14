@@ -1,6 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import permissions, status, viewsets, filters
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -25,8 +25,6 @@ class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerilizer
     permission_classes = (IsAdminOnly,)
-    filter_backends = (filters.SearchFilter,)
-    filterset_fields = ('username',)
 
     @action(detail=False,
             methods=('GET', 'PATCH'),
@@ -114,10 +112,6 @@ class SignUpView(APIView):
 
     def post(self, request, *args, **kwargs):
         """Обработка POST-запроса."""
-        user = User.objects.filter(
-            username=request.data.get('username'),
-            email=request.data.get('email')
-        ).first()
         serializer = SignUpSerializer(data=request.data)
         if User.objects.filter(
             username=request.data.get('username'),

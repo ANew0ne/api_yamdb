@@ -27,7 +27,7 @@ class User(AbstractUser):
                            null=True, blank=True)
     role = models.CharField(verbose_name='Роль',
                             choices=UserRole.choices(),
-                            default=UserRole.USER,
+                            default=UserRole.USER.value,
                             max_length=MAX_FIELD_LENGTH)
 
     class Meta:

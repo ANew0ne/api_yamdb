@@ -122,11 +122,6 @@ class UsersSerilizer(SignUpSerializer):
         )
         read_only_fields = ("role",)
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation["role"] = str(instance.role)
-        return representation
-
 
 class TokenSerializer(serializers.Serializer):
     """Сериализатор токена."""
