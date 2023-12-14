@@ -27,8 +27,9 @@ class UsersViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOnly,)
 
     @action(detail=False,
-            methods=['GET', 'PATCH'],
-            permission_classes=[IsAuthenticated])
+            methods=('GET', 'PATCH'),
+            url_path='me',
+            permission_classes=(IsAuthenticated,))
     def self_profile(self, request):
         if request.method == "PATCH":
             serializer = UsersSerilizer(request.user, data=request.data)
@@ -36,7 +37,7 @@ class UsersViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UsersSerilizer(request.user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(ModelMixinSet):
