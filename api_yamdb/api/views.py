@@ -3,10 +3,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+from rest_framework.mixins import (CreateModelMixin, UpdateModelMixin,
+                                   RetrieveModelMixin, ListModelMixin,
+                                   DestroyModelMixin)
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 
 from .mixins import ModelMixinSet
 from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
@@ -14,6 +18,7 @@ from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
 from api.serializers import (CommentSerializer, ReviewSerializer,
                              SignUpSerializer, CategorySerializer,
                              GenreSerializer, TitleSerializer,
+                             TitleGetSerializer,
                              TokenSerializer, UsersSerilizer,
                              UsersSerilizerForAdmin)
 from reviews.models import Review, Title, Category, Genre
@@ -59,9 +64,6 @@ class CategoryViewSet(ModelMixinSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'slug')
-    permission_classes = (IsAdminOrUserOrReadOnly,)
 
 
 class GenreViewSet(ModelMixinSet):
@@ -69,18 +71,22 @@ class GenreViewSet(ModelMixinSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'slug')
-    permission_classes = (IsAdminOrUserOrReadOnly,)
 
 
-class TitleViewSet(ModelMixinSet):
+class TitleViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin,
+                   RetrieveModelMixin, ListModelMixin,
+                   DestroyModelMixin):
     """Вьюсет для Произведений."""
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
     permission_classes = (IsAdminOrUserOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            return TitleGetSerializer
+        return TitleSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
