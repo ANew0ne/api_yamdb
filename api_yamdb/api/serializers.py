@@ -1,3 +1,5 @@
+import re
+
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -89,17 +91,6 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UsersSerilizer(serializers.ModelSerializer):
-    """Сериализатор пользователей."""
-
-    class Meta:
-        model = User
-        fields = (
-            "username", "email", "first_name", "last_name", "bio", "role",
-        )
-        read_only_fields = ("role",)
-
-
 class SignUpSerializer(serializers.ModelSerializer):
     """Сериализатор регистрации пользователя."""
 
@@ -112,7 +103,29 @@ class SignUpSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Использование имени "me" в качестве username запрещено.'
             )
+        regex = re.compile(r'^[\w.@+-]+\Z')
+        if not regex.match(value):
+            raise serializers.ValidationError(
+                'Неверное значение username. '
+                'Допустимы только буквы, цифры, символы ".", "@", "+" и "-".'
+            )
         return value
+
+
+class UsersSerilizer(SignUpSerializer):
+    """Сериализатор пользователей."""
+
+    class Meta:
+        model = User
+        fields = (
+            "username", "email", "first_name", "last_name", "bio", "role",
+        )
+        read_only_fields = ("role",)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation["role"] = str(instance.role)
+        return representation
 
 
 class TokenSerializer(serializers.Serializer):
