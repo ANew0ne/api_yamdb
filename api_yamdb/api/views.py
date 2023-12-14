@@ -122,6 +122,11 @@ class SignUpView(APIView):
     def post(self, request, *args, **kwargs):
         """Обработка POST-запроса."""
         serializer = SignUpSerializer(data=request.data)
+        if User.objects.filter(
+            username=request.data.get('username'),
+            email=request.data.get('email')
+        ).exists():
+            return Response(request.data, status=status.HTTP_200_OK)
         if serializer.is_valid():
             user = serializer.save()
             email_verification = EmailVerification.objects.create(
