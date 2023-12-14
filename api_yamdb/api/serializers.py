@@ -101,7 +101,7 @@ class UsersSerilizer(serializers.ModelSerializer):
         fields = (
             "username", "email", "first_name", "last_name", "bio", "role",
         )
-        read_only_fields = ("username", "email", "role",)
+        read_only_fields = ("role",)
 
 
 class SignUpSerializer(serializers.ModelSerializer):
