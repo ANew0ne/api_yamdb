@@ -139,23 +139,30 @@ class SignUpView(APIView):
 
     permission_classes = (AllowAny,)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         """Обработка POST-запроса."""
-        serializer = SignUpSerializer(data=request.data)
-        if User.objects.filter(
+        user = User.objects.filter(
             username=request.data.get('username'),
             email=request.data.get('email')
-        ).exists():
-            return Response(request.data, status=status.HTTP_200_OK)
-        if serializer.is_valid():
+        ).first()
+        serializer = SignUpSerializer(data=request.data)
+        # if User.objects.filter(
+        #     username=request.data.get('username'),
+        #     email=request.data.get('email')
+        # ).exists():
+        #     return Response(request.data, status=status.HTTP_200_OK)
+
+        if not user and not serializer.is_valid():
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        if not user:
             user = serializer.save()
-            email_verification = EmailVerification.objects.create(
-                confirmation_code=default_token_generator.make_token(user),
-                user=user,
-            )
-            email_verification.send_verification_email()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        email_verification = EmailVerification.objects.create(
+            confirmation_code=default_token_generator.make_token(user),
+            user=user,
+        )
+        email_verification.send_verification_email()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ObtainTokenView(APIView):

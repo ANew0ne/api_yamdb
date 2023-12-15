@@ -46,7 +46,8 @@ class Command(BaseCommand):
 
         # Обработка связей между Genre и Title
         genre_title_file_path = os.path.join(csv_dir, 'genre_title.csv')
-        with open(genre_title_file_path, 'r', encoding='utf-8') as genre_title_file:
+        with open(genre_title_file_path, 'r', encoding='utf-8') as (
+                genre_title_file):
             csv_reader = csv.DictReader(genre_title_file)
             for row in csv_reader:
                 title_id = row['title_id']
