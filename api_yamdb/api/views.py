@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets, filters
 from rest_framework.decorators import action
@@ -77,7 +78,9 @@ class TitleViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin,
                    RetrieveModelMixin, ListModelMixin,
                    DestroyModelMixin):
     """Вьюсет для Произведений."""
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year', 'genre', 'category')
@@ -94,6 +97,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     permission_classes = (IsAdminOrModeratorOrAuthorOnly,)
+    http_method_names = ('get', 'post', 'delete', 'patch',)
 
     def get_review(self):
         return get_object_or_404(
@@ -112,6 +116,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminOrModeratorOrAuthorOnly,)
+    http_method_names = ('get', 'post', 'delete', 'patch',)
 
     def get_title(self):
         return get_object_or_404(
