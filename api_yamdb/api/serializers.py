@@ -79,7 +79,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleGetSerializer(serializers.ModelSerializer):
-    """Сериализатор произведений безопасных запросов."""
+    """Сериализатор произведений для безопасных запросов."""
 
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
@@ -93,6 +93,7 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор произведений."""
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
     genre = serializers.SlugRelatedField(slug_field='slug', many=True,

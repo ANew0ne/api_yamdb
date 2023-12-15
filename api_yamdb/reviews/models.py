@@ -20,8 +20,8 @@ class Category(models.Model):
                             max_length=SLUG_LIMIT)
 
     class Meta:
-        verbose_name = 'категория'
-        verbose_name_plural = 'категории'
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
 
     def __str__(self):
         return self.name
@@ -36,8 +36,8 @@ class Genre(models.Model):
                             max_length=SLUG_LIMIT)
 
     class Meta:
-        verbose_name = 'жанр'
-        verbose_name_plural = 'жанры'
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
 
     def __str__(self):
         return self.name
@@ -56,8 +56,8 @@ class Title(models.Model):
                                  verbose_name='Категория')
 
     class Meta:
-        verbose_name = 'произведение'
-        verbose_name_plural = 'произведения'
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
 
     def clean(self):
         if self.year > timezone.now().year:
