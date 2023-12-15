@@ -24,6 +24,7 @@ from api.serializers import (CommentSerializer, ReviewSerializer,
                              UsersSerilizerForAdmin)
 from reviews.models import Review, Title, Category, Genre
 from users.models import EmailVerification, User
+from .filters import TitleFilter
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -65,6 +66,7 @@ class CategoryViewSet(ModelMixinSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    lookup_field = 'slug'
 
 
 class GenreViewSet(ModelMixinSet):
@@ -72,6 +74,7 @@ class GenreViewSet(ModelMixinSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = 'slug'
 
 
 class TitleViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin,
@@ -83,8 +86,9 @@ class TitleViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin,
     ).all()
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('name', 'year', 'genre', 'category')
+    filterset_class = TitleFilter
     permission_classes = (IsAdminOrUserOrReadOnly,)
+    http_method_names = ('get', 'post', 'delete', 'patch',)
 
     def get_serializer_class(self):
         if self.action == 'list' or self.action == 'retrieve':
