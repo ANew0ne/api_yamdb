@@ -13,9 +13,14 @@ SLUG_LIMIT = 50
 
 class CategoryGenreModel(models.Model):
     """Абстрактный класс с общими полями для Категории и Жанра."""
-    name = models.CharField(verbose_name='Название', max_length=MAX_LENGTH)
+    name = models.CharField(
+    verbose_name='Название',
+    max_length=MAX_LENGTH
+    )
     slug = models.SlugField(
-        unique=True, verbose_name='Слаг', max_length=SLUG_LIMIT
+        unique=True,
+        verbose_name='Слаг',
+        max_length=SLUG_LIMIT
     )
 
     class Meta:
@@ -32,7 +37,9 @@ class CommentReviewModel(models.Model):
         User, on_delete=models.CASCADE, verbose_name='Автор'
     )
     pub_date = models.DateTimeField(
-        'Дата публикации', auto_now_add=True, db_index=True
+        'Дата публикации', 
+        auto_now_add=True,
+        db_index=True,
     )
 
     class Meta:
@@ -63,7 +70,8 @@ class Title(models.Model):
         verbose_name='Год выпуска',
         db_index=True
     )
-    description = models.TextField(verbose_name='Описание', blank=True)
+    description = models.TextField(verbose_name='Описание', 
+                                   blank=True)
     genre = models.ManyToManyField(Genre,
                                    verbose_name='Жанр')
     category = models.ForeignKey(Category,
@@ -100,7 +108,7 @@ class Review(CommentReviewModel):
 
     class Meta:
         default_related_name = 'reviews'
-        ordering = ('author', '-pub_date')
+        ordering = ('author', '-pub_date',)
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         constraints = [
@@ -144,7 +152,7 @@ class Comment(CommentReviewModel):
 
     class Meta:
         default_related_name = 'comments'
-        ordering = ('author', '-pub_date')
+        ordering = ('-pub_date', 'author', )
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
 
