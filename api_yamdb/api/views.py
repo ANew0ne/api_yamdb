@@ -47,7 +47,7 @@ class UsersViewSet(BaseViewSet):
             methods=('GET', 'PATCH'),
             permission_classes=(IsAuthenticated,))
     def me(self, request):
-        if request.method == "PATCH":
+        if request.method == 'PATCH':
             serializer = UsersSerilizer(request.user,
                                         data=request.data,
                                         partial=True)
@@ -76,7 +76,7 @@ class TitleViewSet(BaseViewSet):
     """Вьюсет для Произведений."""
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
-    ).all()
+    ).all().order_by('-rating')
     serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter

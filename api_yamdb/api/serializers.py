@@ -1,24 +1,18 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
 from django.db import IntegrityError
 from rest_framework import serializers
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
+
+from api_yamdb.settings import EMAIL_HOST_USER
 from reviews.models import Comment, Title, Review, Category, Genre
 from users.models import User, MAX_EMAIL_LENGTH, MAX_FIELD_LENGTH
 from users.validators import validate_username
-from api_yamdb.settings import EMAIL_HOST_USER
-
-MIN_VALUE = 0
-MAX_VALUE = 10
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор отзывов."""
 
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True
-    )
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
@@ -35,7 +29,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'text', 'pub_date', 'score', 'author')
         model = Review
         extra_kwargs = {
             'title': {'write_only': True},
@@ -45,17 +39,13 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор комментариев к отзывам."""
 
-    review = serializers.SlugRelatedField(
-        slug_field='text',
-        read_only=True
-    )
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
     )
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'text', 'pub_date', 'author')
         model = Comment
         extra_kwargs = {
             'review': {'write_only': True},
@@ -125,8 +115,7 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        title_get_serializer = TitleGetSerializer(instance)
-        return title_get_serializer.data
+        return TitleGetSerializer(instance).data
 
 
 class SignUpSerializer(serializers.Serializer):
@@ -150,9 +139,7 @@ class SignUpSerializer(serializers.Serializer):
         except IntegrityError:
             raise serializers.ValidationError(
                 {
-                    'username': ['Пользователь с таким именем '
-                                 'уже существует.'],
-                    'email': ['Пользователь с таким email уже существует.'],
+                    'detail': ['Имя пользователя или почта уже заняты.']
                 }
             )
         send_mail(
