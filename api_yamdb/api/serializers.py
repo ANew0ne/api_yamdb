@@ -4,7 +4,8 @@ from rest_framework import serializers
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from reviews.models import Comment, Title, Review, Category, Genre
-from users.models import User
+from users.models import User, MAX_EMAIL_LENGTH, MAX_FIELD_LENGTH
+from users.validators import validate_username
 from api_yamdb.settings import EMAIL_HOST_USER
 
 MIN_VALUE = 0
@@ -128,15 +129,17 @@ class TitleSerializer(serializers.ModelSerializer):
         return title_get_serializer.data
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.Serializer):
     """Сериализатор регистрации пользователя."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email'
-        )
+    email = serializers.EmailField(
+        required=True,
+        max_length=MAX_EMAIL_LENGTH
+    )
+    username = serializers.CharField(
+        required=True,
+        max_length=MAX_FIELD_LENGTH,
+        validators=(validate_username,)
+    )
 
     def create(self, validated_data):
         try:
@@ -144,8 +147,6 @@ class SignUpSerializer(serializers.ModelSerializer):
                 username=validated_data.get('username'),
                 email=validated_data.get('email'),
             )
-            if created:
-                user.save()
         except IntegrityError:
             raise serializers.ValidationError(
                 {
