@@ -67,6 +67,7 @@ class Genre(CategoryGenreModel):
 
 class Title(models.Model):
     """Модель произведения."""
+
     name = models.CharField(
         verbose_name='Название',
         max_length=MAX_LENGTH,
@@ -100,6 +101,7 @@ class Title(models.Model):
 
 class Review(CommentReviewModel):
     """Модель Отзывов."""
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
