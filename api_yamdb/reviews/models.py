@@ -1,8 +1,9 @@
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.utils import timezone
+
+
+from .validators import validate_year
 
 User = get_user_model()
 
@@ -14,8 +15,8 @@ SLUG_LIMIT = 50
 class CategoryGenreModel(models.Model):
     """Абстрактный класс с общими полями для Категории и Жанра."""
     name = models.CharField(
-    verbose_name='Название',
-    max_length=MAX_LENGTH
+        verbose_name='Название',
+        max_length=MAX_LENGTH
     )
     slug = models.SlugField(
         unique=True,
@@ -34,10 +35,12 @@ class CategoryGenreModel(models.Model):
 class CommentReviewModel(models.Model):
     text = models.CharField(max_length=MAX_LENGTH)
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Автор'
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор'
     )
     pub_date = models.DateTimeField(
-        'Дата публикации', 
+        'Дата публикации',
         auto_now_add=True,
         db_index=True,
     )
@@ -64,27 +67,32 @@ class Genre(CategoryGenreModel):
 
 class Title(models.Model):
     """Модель произведения."""
-    name = models.CharField(verbose_name='Название',
-                            max_length=MAX_LENGTH)
+    name = models.CharField(
+        verbose_name='Название',
+        max_length=MAX_LENGTH,
+    )
     year = models.PositiveSmallIntegerField(
         verbose_name='Год выпуска',
-        db_index=True
+        db_index=True,
+        validators=(validate_year,),
     )
-    description = models.TextField(verbose_name='Описание', 
-                                   blank=True)
-    genre = models.ManyToManyField(Genre,
-                                   verbose_name='Жанр')
-    category = models.ForeignKey(Category,
-                                 on_delete=models.CASCADE,
-                                 verbose_name='Категория')
+    description = models.TextField(
+        verbose_name='Описание',
+        blank=True
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        verbose_name='Жанр'
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        verbose_name='Категория'
+    )
 
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-
-    def clean(self):
-        if self.year > timezone.now().year:
-            raise ValidationError('Год выпуска не может быть больше текущего!')
 
     def __str__(self):
         return self.name

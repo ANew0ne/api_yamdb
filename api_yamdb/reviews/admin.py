@@ -49,9 +49,19 @@ class CommentAdmin(admin.ModelAdmin):
 class TitleAdmin(admin.ModelAdmin):
     """Административный класс для управления произведениями."""
 
-    list_display = ('name', 'year', 'description',
-                    'display_genre', 'category')
-    list_filter = ('name', 'year', 'genre', 'category')
+    list_display = (
+        'name',
+        'year',
+        'description',
+        'display_genre',
+        'category'
+    )
+    list_filter = (
+        'name',
+        'year',
+        'genre',
+        'category'
+    )
     empty_value_display = '-пусто-'
 
     @admin.display(description='Жанр')
@@ -64,9 +74,13 @@ class CategoryAdmin(admin.ModelAdmin):
     """Административный класс для управления категориями."""
 
     list_display = (
-        'name', 'slug'
+        'name',
+        'slug',
     )
-    list_filter = ('name', 'slug')
+    list_filter = (
+        'name',
+        'slug'
+    )
 
 
 @admin.register(Genre)
@@ -74,6 +88,10 @@ class GenreAdmin(admin.ModelAdmin):
     """Административный класс для управления жанрами."""
 
     list_display = (
-        'name', 'slug'
+        'name',
+        'slug'
     )
-    list_filter = ('name', 'slug')
+    list_filter = (
+        'name',
+        'slug'
+    )

@@ -86,7 +86,12 @@ class TitleViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin,
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrUserOrReadOnly,)
-    http_method_names = ('get', 'post', 'delete', 'patch',)
+    http_method_names = (
+        'get',
+        'post',
+        'delete',
+        'patch',
+    )
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -99,7 +104,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentSerializer
     permission_classes = (IsAdminOrModeratorOrAuthorOnly,)
-    http_method_names = ('get', 'post', 'delete', 'patch',)
+    http_method_names = (
+        'get',
+        'post',
+        'delete',
+        'patch',
+    )
 
     def get_review(self):
         return get_object_or_404(
@@ -119,7 +129,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminOrModeratorOrAuthorOnly,)
-    http_method_names = ('get', 'post', 'delete', 'patch',)
+    http_method_names = (
+        'get',
+        'post',
+        'delete',
+        'patch',
+    )
 
     def get_title(self):
         return get_object_or_404(

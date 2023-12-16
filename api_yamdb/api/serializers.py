@@ -65,7 +65,10 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        fields = (
+            'name',
+            'slug'
+        )
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -73,29 +76,47 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        fields = (
+            'name',
+            'slug'
+        )
 
 
 class TitleGetSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для безопасных запросов."""
 
     category = CategorySerializer(read_only=True)
-    genre = GenreSerializer(many=True, read_only=True)
-    rating = serializers.IntegerField(read_only=True, default=None)
+    genre = GenreSerializer(
+        many=True,
+        read_only=True,
+    )
+    rating = serializers.IntegerField(
+        read_only=True,
+        default=None,
+    )
 
     class Meta:
         model = Title
         fields = '__all__'
         read_only_fields = (
-            'id', 'name', 'year', 'description')
+            'id',
+            'name',
+            'year',
+            'description'
+        )
 
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор произведений."""
-    category = serializers.SlugRelatedField(slug_field='slug',
-                                            queryset=Category.objects.all())
-    genre = serializers.SlugRelatedField(slug_field='slug', many=True,
-                                         queryset=Genre.objects.all())
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        many=True,
+        queryset=Genre.objects.all()
+    )
 
     class Meta:
         model = Title
@@ -111,7 +132,10 @@ class SignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = (
+            'username',
+            'email'
+        )
 
     def validate_username(self, value):
         if value.lower() == 'me':
@@ -133,9 +157,14 @@ class UsersSerilizer(SignUpSerializer):
     class Meta:
         model = User
         fields = (
-            "username", "email", "first_name", "last_name", "bio", "role",
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
         )
-        read_only_fields = ("role",)
+        read_only_fields = ('role',)
 
 
 class UsersSerilizerForAdmin(SignUpSerializer):
@@ -144,7 +173,12 @@ class UsersSerilizerForAdmin(SignUpSerializer):
     class Meta:
         model = User
         fields = (
-            "username", "email", "first_name", "last_name", "bio", "role",
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
         )
 
 
