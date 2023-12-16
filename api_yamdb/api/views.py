@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets, filters
@@ -23,8 +24,9 @@ from api.serializers import (CommentSerializer, ReviewSerializer,
                              TokenSerializer, UsersSerilizer,
                              UsersSerilizerForAdmin)
 from reviews.models import Review, Title, Category, Genre
-from users.models import EmailVerification, User
-from .filters import TitleFilter
+from users.models import User
+from api.filters import TitleFilter
+from api_yamdb.settings import EMAIL_HOST_USER
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -149,11 +151,14 @@ class SignUpView(APIView):
             return Response(request.data, status=status.HTTP_200_OK)
         if serializer.is_valid():
             user = serializer.save()
-            email_verification = EmailVerification.objects.create(
-                confirmation_code=default_token_generator.make_token(user),
-                user=user,
+            send_mail(
+                'Подтверждение регистрации',
+                'Код подтверждения: '
+                f'{default_token_generator.make_token(user)}',
+                EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
             )
-            email_verification.send_verification_email()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
