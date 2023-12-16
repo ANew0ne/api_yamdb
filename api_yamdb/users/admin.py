@@ -10,7 +10,12 @@ admin.site.unregister(Group)
 class UserAdmin(UserAdmin):
     """Административный класс для управления пользователями."""
 
-    list_display = ('username', 'email', 'role', 'is_active')
+    list_display = (
+        'username',
+        'email',
+        'role',
+        'is_active',
+    )
     search_fields = ('username',)
     list_filter = ('role',)
     empty_value_display = '-пусто-'
