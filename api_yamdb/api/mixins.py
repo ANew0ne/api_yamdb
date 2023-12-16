@@ -7,9 +7,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import IsAdminOrUserOrReadOnly
 
 
-class ModelMixinSet(CreateModelMixin, ListModelMixin,
-                    DestroyModelMixin, GenericViewSet):
+class CategoryGenreViewSet(CreateModelMixin, ListModelMixin,
+                           DestroyModelMixin, GenericViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = ('name', 'slug')
     permission_classes = (IsAdminOrUserOrReadOnly,)
     search_fields = ('name',)
+    lookup_field = 'slug'
