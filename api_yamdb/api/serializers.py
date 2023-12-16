@@ -113,19 +113,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email')
 
-    def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                'Использование имени "me" в качестве username запрещено.'
-            )
-        regex = re.compile(r'^[\w.@+-]+\Z')
-        if not regex.match(value):
-            raise serializers.ValidationError(
-                'Неверное значение username. '
-                'Допустимы только буквы, цифры, символы ".", "@", "+" и "-".'
-            )
-        return value
-
 
 class UsersSerilizer(SignUpSerializer):
     """Сериализатор пользователей."""

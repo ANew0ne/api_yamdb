@@ -1,11 +1,7 @@
-from enum import Enum
+from django.db.models import TextChoices
 
 
-class UserRole(Enum):
-    ADMIN = 'admin'
-    USER = 'user'
-    MODERATOR = 'moderator'
-
-    @classmethod
-    def choices(cls):
-        return [(key.value, key.name) for key in cls]
+class UserRole(TextChoices):
+    ADMIN = ('admin',)
+    USER = ('user',)
+    MODERATOR = ('moderator',)
