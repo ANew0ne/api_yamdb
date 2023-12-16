@@ -1,11 +1,12 @@
-import re
-
 from django.core.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
+from django.db import IntegrityError
 from rest_framework import serializers
-
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from reviews.models import Comment, Title, Review, Category, Genre
-from users.models import User
+from users.models import User, MAX_EMAIL_LENGTH, MAX_FIELD_LENGTH
+from users.validators import validate_username
+from api_yamdb.settings import EMAIL_HOST_USER
 
 MIN_VALUE = 0
 MAX_VALUE = 10
@@ -23,26 +24,22 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    def validate_score(self, value):
-        if MIN_VALUE > value > MAX_VALUE:
-            raise serializers.ValidationError('Диапазон значений от 1 до 10!')
-        return value
-
     def validate(self, data):
         request = self.context['request']
+        if request.method != 'POST':
+            return data
         author = request.user
         title_id = self.context.get('view').kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        if (
-            request.method == 'POST'
-            and Review.objects.filter(title=title, author=author).exists()
-        ):
+        if Review.objects.filter(title=title_id, author=author).exists():
             raise ValidationError('Нельзя дублировать отзыв!')
         return data
 
     class Meta:
         fields = '__all__'
         model = Review
+        extra_kwargs = {
+            'title': {'write_only': True},
+        }
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -60,6 +57,9 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comment
+        extra_kwargs = {
+            'review': {'write_only': True},
+        }
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -67,7 +67,10 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        fields = (
+            'name',
+            'slug'
+        )
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -75,75 +78,114 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        fields = (
+            'name',
+            'slug'
+        )
 
 
 class TitleGetSerializer(serializers.ModelSerializer):
     """Сериализатор произведений для безопасных запросов."""
 
-    category = CategorySerializer()
-    genre = GenreSerializer(many=True)
-    rating = serializers.IntegerField(read_only=True)
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(
+        many=True,
+        read_only=True,
+    )
+    rating = serializers.IntegerField(
+        read_only=True,
+        default=None,
+    )
 
     class Meta:
         model = Title
         fields = '__all__'
         read_only_fields = (
-            'id', 'name', 'year', 'description', 'genre', 'category')
+            'id',
+            'name',
+            'year',
+            'description'
+        )
 
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор произведений."""
-    category = serializers.SlugRelatedField(slug_field='slug',
-                                            queryset=Category.objects.all())
-    genre = serializers.SlugRelatedField(slug_field='slug', many=True,
-                                         queryset=Genre.objects.all())
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all()
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        many=True,
+        queryset=Genre.objects.all()
+    )
 
     class Meta:
         model = Title
         fields = '__all__'
 
+    def to_representation(self, instance):
+        title_get_serializer = TitleGetSerializer(instance)
+        return title_get_serializer.data
 
-class SignUpSerializer(serializers.ModelSerializer):
+
+class SignUpSerializer(serializers.Serializer):
     """Сериализатор регистрации пользователя."""
+    email = serializers.EmailField(
+        required=True,
+        max_length=MAX_EMAIL_LENGTH
+    )
+    username = serializers.CharField(
+        required=True,
+        max_length=MAX_FIELD_LENGTH,
+        validators=(validate_username,)
+    )
 
-    class Meta:
-        model = User
-        fields = ('username', 'email')
-
-    def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError(
-                'Использование имени "me" в качестве username запрещено.'
+    def create(self, validated_data):
+        try:
+            user, created = User.objects.get_or_create(
+                username=validated_data.get('username'),
+                email=validated_data.get('email'),
             )
-        regex = re.compile(r'^[\w.@+-]+\Z')
-        if not regex.match(value):
+        except IntegrityError:
             raise serializers.ValidationError(
-                'Неверное значение username. '
-                'Допустимы только буквы, цифры, символы ".", "@", "+" и "-".'
+                {
+                    'username': ['Пользователь с таким именем '
+                                 'уже существует.'],
+                    'email': ['Пользователь с таким email уже существует.'],
+                }
             )
-        return value
+        send_mail(
+            'Подтверждение регистрации',
+            'Код подтверждения: '
+            f'{default_token_generator.make_token(user)}',
+            EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+        return user
 
 
-class UsersSerilizer(SignUpSerializer):
+class UsersSerilizerForAdmin(serializers.ModelSerializer):
     """Сериализатор пользователей."""
 
     class Meta:
         model = User
         fields = (
-            "username", "email", "first_name", "last_name", "bio", "role",
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
         )
-        read_only_fields = ("role",)
 
 
-class UsersSerilizerForAdmin(SignUpSerializer):
+class UsersSerilizer(UsersSerilizerForAdmin):
     """Сериализатор пользователей."""
 
-    class Meta:
-        model = User
-        fields = (
-            "username", "email", "first_name", "last_name", "bio", "role",
-        )
+    class Meta(UsersSerilizerForAdmin.Meta):
+        read_only_fields = ('role',)
 
 
 class TokenSerializer(serializers.Serializer):
