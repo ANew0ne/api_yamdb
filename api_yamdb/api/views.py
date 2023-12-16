@@ -13,7 +13,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
-from .mixins import ModelMixinSet
+from .mixins import CategoryGenreViewSet
 from api.permissions import (IsAdminOnly, IsAdminOrUserOrReadOnly,
                              IsAdminOrModeratorOrAuthorOnly)
 from api.serializers import (CommentSerializer, ReviewSerializer,
@@ -61,20 +61,18 @@ class UsersViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-class CategoryViewSet(ModelMixinSet):
+class CategoryViewSet(CategoryGenreViewSet):
     """Вьюсет для Категорий."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    lookup_field = 'slug'
 
 
-class GenreViewSet(ModelMixinSet):
+class GenreViewSet(CategoryGenreViewSet):
     """Вьюсет для Жанров."""
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    lookup_field = 'slug'
 
 
 class TitleViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin,
@@ -91,7 +89,7 @@ class TitleViewSet(GenericViewSet, CreateModelMixin, UpdateModelMixin,
     http_method_names = ('get', 'post', 'delete', 'patch',)
 
     def get_serializer_class(self):
-        if self.action == 'list' or self.action == 'retrieve':
+        if self.action in ('list', 'retrieve'):
             return TitleGetSerializer
         return TitleSerializer
 
@@ -105,7 +103,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_review(self):
         return get_object_or_404(
-            Review, id=self.kwargs.get('review_id')
+            Review, id=self.kwargs.get('review_id'),
+            title_id=self.kwargs.get('title_id')
         )
 
     def get_queryset(self):

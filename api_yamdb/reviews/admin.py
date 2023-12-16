@@ -54,9 +54,9 @@ class TitleAdmin(admin.ModelAdmin):
     list_filter = ('name', 'year', 'genre', 'category')
     empty_value_display = '-пусто-'
 
+    @admin.display(description='Жанр')
     def display_genre(self, obj):
         return ', '.join([genre.name for genre in obj.genre.all()])
-    display_genre.short_description = 'Жанр'
 
 
 @admin.register(Category)
