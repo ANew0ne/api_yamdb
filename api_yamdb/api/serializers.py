@@ -1,10 +1,11 @@
-import re
-
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from rest_framework import serializers
-
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from reviews.models import Comment, Title, Review, Category, Genre
 from users.models import User
+from api_yamdb.settings import EMAIL_HOST_USER
 
 MIN_VALUE = 0
 MAX_VALUE = 10
@@ -137,8 +138,34 @@ class SignUpSerializer(serializers.ModelSerializer):
             'email'
         )
 
+    def create(self, validated_data):
+        try:
+            user, created = User.objects.get_or_create(
+                username=validated_data.get('username'),
+                email=validated_data.get('email'),
+            )
+            if created:
+                user.save()
+        except IntegrityError:
+            raise serializers.ValidationError(
+                {
+                    'username': ['Пользователь с таким именем '
+                                 'уже существует.'],
+                    'email': ['Пользователь с таким email уже существует.'],
+                }
+            )
+        send_mail(
+            'Подтверждение регистрации',
+            'Код подтверждения: '
+            f'{default_token_generator.make_token(user)}',
+            EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+        return user
 
-class UsersSerilizer(SignUpSerializer):
+
+class UsersSerilizerForAdmin(serializers.ModelSerializer):
     """Сериализатор пользователей."""
 
     class Meta:
@@ -151,22 +178,13 @@ class UsersSerilizer(SignUpSerializer):
             'bio',
             'role',
         )
+
+
+class UsersSerilizer(UsersSerilizerForAdmin):
+    """Сериализатор пользователей."""
+
+    class Meta(UsersSerilizerForAdmin.Meta):
         read_only_fields = ('role',)
-
-
-class UsersSerilizerForAdmin(SignUpSerializer):
-    """Сериализатор пользователей."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
 
 
 class TokenSerializer(serializers.Serializer):
